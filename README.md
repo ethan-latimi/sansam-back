@@ -1,3 +1,3 @@
-## sansam management system
+# sansam management system
 
-# using django rest api
+using django rest api
