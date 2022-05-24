@@ -26,6 +26,8 @@ class Product(TimeStampedModel):
     qty = models.IntegerField(blank=True, default=0)
     category = models.ForeignKey(
         Category, on_delete=models.PROTECT, null=True)
+    owner = models.ForeignKey(
+        'users.User', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name

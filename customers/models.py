@@ -29,6 +29,8 @@ class Customer(TimeStampedModel):
         validators=[phoneNumberRegex], max_length=14, unique=True, null=True, blank=True)
     totalSpend = models.IntegerField(default=0, blank=True)
     reference = models.ForeignKey(Reference, on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        'users.User', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name

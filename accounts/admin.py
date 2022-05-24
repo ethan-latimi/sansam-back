@@ -1,10 +1,10 @@
 from django.contrib import admin
 from . import models
 
-admin.site.register(models.transaction)
+admin.site.register(models.Transaction)
 
 
-@admin.register(models.account)
+@admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
 
     """ Customized Account Admin """

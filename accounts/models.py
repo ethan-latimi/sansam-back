@@ -3,7 +3,7 @@ from django.db import models
 from core.models import TimeStampedModel
 
 
-class account(TimeStampedModel):
+class Account(TimeStampedModel):
 
     """ Wallet (지갑) """
 
@@ -16,7 +16,7 @@ class account(TimeStampedModel):
         return self.name
 
 
-class transaction(TimeStampedModel):
+class Transaction(TimeStampedModel):
 
     """ Transaction Detail (거래 내역) """
 
@@ -31,8 +31,9 @@ class transaction(TimeStampedModel):
     id = models.AutoField(primary_key=True, editable=False)
     amount = models.IntegerField(default=0)
     type = models.CharField(choices=TRANSACTION_TYPES, max_length=50)
-    account = models.ForeignKey(account, on_delete=models.CASCADE, related_name="transactions")
+    account = models.ForeignKey(
+        Account, on_delete=models.CASCADE, related_name="transactions")
     content = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.type} + {self.account}"
+        return f"{self.type} + {self.Account}"
