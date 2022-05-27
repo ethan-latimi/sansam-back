@@ -9,5 +9,5 @@ class CustomUserAdmin(UserAdmin):
     """Custom User Admin"""
 
     fieldsets = UserAdmin.fieldsets + (
-        ("description", {"fields": ("avatar", "gender", "bio",)}),
+        ("description", {"fields": ("gender", "bio",)}),
     )

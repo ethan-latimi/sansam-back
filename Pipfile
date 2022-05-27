@@ -9,6 +9,9 @@ pillow = "*"
 django-extensions = "*"
 pyparsing = "*"
 pygraphviz = "*"
+djangorestframework = "*"
+markdown = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 autopep8 = "*"

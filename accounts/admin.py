@@ -11,7 +11,7 @@ class AccountAdmin(admin.ModelAdmin):
 
     list_display = (
         'name',
-        'user',
+        'owner',
         'wallet',
         'transactions',
     )

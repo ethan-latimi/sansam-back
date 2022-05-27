@@ -10,7 +10,8 @@ class Account(TimeStampedModel):
     id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=50)
     wallet = models.IntegerField(default=0)
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    owner = models.OneToOneField(
+        'users.User', on_delete=models.CASCADE, null=True, related_name="account")
 
     def __str__(self):
         return self.name
@@ -36,4 +37,4 @@ class Transaction(TimeStampedModel):
     content = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.type} + {self.Account}"
+        return f"{self.type} + {self.account}"
