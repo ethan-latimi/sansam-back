@@ -1,5 +1,4 @@
 from django.db import models
-from django.dispatch import receiver
 
 from core.models import TimeStampedModel
 from customers.models import Customer
@@ -17,7 +16,7 @@ class Order(TimeStampedModel):
     )
 
     id = models.AutoField(primary_key=True, editable=False)
-    customer = models.OneToOneField(Customer, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     payment = models.CharField(choices=PAYMENT_METHODS, max_length=100)
     price = models.IntegerField(default=0)
     isPaid = models.BooleanField(default=False)
@@ -25,9 +24,11 @@ class Order(TimeStampedModel):
     isDelivered = models.BooleanField(default=False)
     deleveredAt = models.DateTimeField(null=True, blank=True)
     receiver = models.CharField(
-        max_length=100, null=True, default=customer, blank=True)
+        max_length=100, null=True, default="", blank=True)
     customerMemo = models.CharField(max_length=255, null=True, blank=True)
     sellerMemo = models.CharField(max_length=255, null=True, blank=True)
+    owner = models.ForeignKey(
+        "users.User", on_delete=models.CASCADE, default=1)
 
     def __str__(self):
         return f"{self.customer} order {self.id}"
@@ -38,9 +39,10 @@ class OrderItem(models.Model):
     """ Order Item Model (각 주문 항목)"""
 
     id = models.AutoField(primary_key=True, editable=False)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product = models.ForeignKey(
+        Product, on_delete=models.PROTECT, related_name="orderItem")
     qty = models.IntegerField(default=0)
-    price = models.IntegerField()
+    price = models.IntegerField(default=0, blank=True)
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name='orderItems')
 

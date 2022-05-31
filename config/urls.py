@@ -20,11 +20,14 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('api/', include('core.urls')),
-    path('api/users/', include('users.urls')),
-    path('api/accounts/', include('accounts.urls')),
-    path('api/customers/', include('customers.urls')),
+    path('api/v1/users/', include('users.api.v1.urls')),
+    path('api/v1/accounts/', include('accounts.api.v1.urls')),
+    path('api/v1/customers/', include('customers.api.v1.urls')),
+    path('api/v1/farms/', include('farms.api.v1.urls')),
+    # path('api/v1/orders/', include('orders.api.v1.urls')),
+    path('api/v1/products/', include('products.api.v1.urls')),
+    path('api/v1/todos/', include('todos.api.v1.urls')),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
-
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

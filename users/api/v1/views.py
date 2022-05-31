@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 # project
-from .models import User
+from ...models import User
 from users.serializers import UserSerializer
 
 

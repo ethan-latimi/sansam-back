@@ -8,6 +8,8 @@ class Category(models.Model):
     """ Product's Category (상품 카테고리) """
 
     name = models.CharField(max_length=50)
+    owner = models.ForeignKey(
+        'users.User', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name

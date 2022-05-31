@@ -30,7 +30,7 @@ class Customer(TimeStampedModel):
     totalSpend = models.IntegerField(default=0, blank=True)
     reference = models.ForeignKey(Reference, on_delete=models.CASCADE)
     owner = models.ForeignKey(
-        'users.User', on_delete=models.CASCADE, null=True)
+        'users.User', on_delete=models.CASCADE, null=True, related_name="customers")
 
     def __str__(self):
         return self.name

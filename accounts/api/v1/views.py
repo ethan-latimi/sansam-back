@@ -8,9 +8,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from customers.models import Customer
+
 
 # Project
-from .models import Account, Transaction
+from ...models import Account, Transaction
 from accounts.serializers import AccountSerializer, TransactionSerializer
 from core.views import pagination
 
@@ -44,13 +46,12 @@ def getTransaction(request):
     if start == None or end == None:
         d = timezone.now()
         start = f"{d.year}-{d.month-1}-{d.day}"
-        end = f"{d.year}-{d.month}-{d.day}"
+        end = f"{d.year}-{d.month}-{d.day+1}"
     else:
         start = start.group()
         end = end.group()
-        if(start == end):
-            list = end.split('-')
-            end = f"{list[0]}-{list[1]}-{int(list[2])+1}"
+        list = end.split('-')
+        end = f"{list[0]}-{list[1]}-{int(list[2])+1}"
     if query == 'deposit':
         deposits = Transaction.objects.filter(
             account=account, type=query).order_by('-created')
@@ -78,14 +79,17 @@ def getTransaction(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def postTransaction(request):
+    user = request.user
     account = request.user.account
     data = request.data
+    customer = Customer.objects.get(id=data["customer"])
     try:
         deposit = Transaction.objects.create(
             amount=data['amount'],
             type=data['type'],
             account=account,
             content=data['content'],
+            customer=customer
         )
     except:
         message = {'detail': '입력하신 내용이 잘못되었습니다.'}

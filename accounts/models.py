@@ -1,6 +1,7 @@
 from django.db import models
 
 from core.models import TimeStampedModel
+from customers.models import Customer
 
 
 class Account(TimeStampedModel):
@@ -35,6 +36,10 @@ class Transaction(TimeStampedModel):
     account = models.ForeignKey(
         Account, on_delete=models.CASCADE, related_name="transactions")
     content = models.CharField(max_length=100)
+    customer = models.ForeignKey(
+        Customer, on_delete=models.CASCADE, null=True, blank=True, related_name="transactions")
+    order = models.OneToOneField(
+        "orders.Order", on_delete=models.CASCADE, null=True, blank=True, related_name="transaction")
 
     def __str__(self):
         return f"{self.type} + {self.account}"
