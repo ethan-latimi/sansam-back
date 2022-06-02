@@ -102,6 +102,40 @@ def postFarm(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def uploadFarmImage(request, pk):
+    '''
+    농장 이미지 생성
+    ---
+    프론트 사용법
+    ```
+    const [image, setImage] = useState('')
+    const uploadFileHandler = async (e) => {
+        const file = e.target.files[0]
+        const formData = new FormData()
+
+        formData.append('image', file)
+        formData.append('product_id', productId)
+
+        setUploading(true)
+
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+
+            const { data } = await axios.post('/api/products/upload/', formData, config)
+
+
+            setImage(data)
+            setUploading(false)
+
+        } catch (error) {
+            setUploading(false)
+        }
+    } 
+    ```
+    '''
     data = request.data
     user = request.user
     pk = data['pk']
