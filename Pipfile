@@ -12,6 +12,8 @@ pygraphviz = "*"
 djangorestframework = "*"
 markdown = "*"
 djangorestframework-simplejwt = "*"
+drf-yasg = "*"
+flex = "*"
 
 [dev-packages]
 autopep8 = "*"

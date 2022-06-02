@@ -38,6 +38,7 @@ PROJECT_APPS = [
     'users.apps.UsersConfig',
     'todos.apps.TodosConfig',
     'customers.apps.CustomersConfig',
+    'drf_yasg',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
 ]

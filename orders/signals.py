@@ -15,9 +15,15 @@ def create_order(sender, instance, created, **kwargs):
             customer=order.customer,
             order=order,
         )
-    else:
-        transaction = order.transaction
-        transaction.save()
+    transaction = Transaction.objects.get(order=order.id)
+    transaction.save()
+    orderItems = OrderItem.objects.filter(order=order.id)
+    if orderItems != None:
+        for orderItem in orderItems:
+            product = orderItem.product
+            if product.qty > 0:
+                product.qty -= orderItem.qty
+            product.save()
 
 
 @receiver(pre_save, sender=Order)
@@ -45,11 +51,6 @@ def delete_order(sender, instance, **kwargs):
 @receiver(post_save, sender=OrderItem)
 def create_order_item(sender, instance, created, **kwargs):
     orderItem = instance
-    if created == True:
-        product = orderItem.product
-        if product.qty < 0:
-            product.qty -= orderItem.qty
-            orderItem.price += product.price
     order = orderItem.order
     order.save()
 
@@ -59,3 +60,18 @@ def update_order_item(sender, instance, **kwargs):
     orderItem = instance
     product = instance.product
     orderItem.price = product.price * instance.qty
+    if instance.id:
+        pre_orderItem = OrderItem.objects.get(id=instance.id)
+        product = pre_orderItem.product
+        product.qty += pre_orderItem.qty
+        product.save()
+
+
+@receiver(post_delete, sender=OrderItem)
+def delete_order_item(sender, instance, **kwargs):
+    orderItem = instance
+    product = instance.product
+    if product.qty < 0:
+        product.qty += orderItem.qty
+    order = orderItem.order
+    order.save()

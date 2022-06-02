@@ -22,7 +22,7 @@ class Order(TimeStampedModel):
     isPaid = models.BooleanField(default=False)
     paidAt = models.DateTimeField(null=True, blank=True)
     isDelivered = models.BooleanField(default=False)
-    deleveredAt = models.DateTimeField(null=True, blank=True)
+    deliveredAt = models.DateTimeField(null=True, blank=True)
     receiver = models.CharField(
         max_length=100, null=True, default="", blank=True)
     customerMemo = models.CharField(max_length=255, null=True, blank=True)

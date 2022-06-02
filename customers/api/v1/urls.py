@@ -5,6 +5,6 @@ urlpatterns = [
     path('', views.getCustomerList, name='customer'),
     path('<str:pk>', views.getCustomer, name='customer-list'),
     path('create/', views.postCustomer, name='post-customer'),
-    path('update/', views.putCustomer, name='put-customer'),
-    path('delete/', views.deleteCustomer, name='delete-customer'),
+    path('update/<str:pk>', views.putCustomer, name='put-customer'),
+    path('delete/<str:pk>', views.deleteCustomer, name='delete-customer'),
 ]

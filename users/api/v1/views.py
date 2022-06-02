@@ -33,6 +33,11 @@ class MyTokenObtainPairView(TokenObtainPairView):
 @api_view(['GET', 'POST', 'PUT'])
 @permission_classes([IsAdminUser])
 def userInfo(request):
+    '''
+    유저(서비스 가입자)
+    ---
+    django admin에서 수정
+    '''
     data = request.data
     # User Info (유저 정보)
     if request.method == 'GET':
