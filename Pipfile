@@ -14,6 +14,7 @@ markdown = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
 flex = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 autopep8 = "*"

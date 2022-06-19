@@ -27,7 +27,7 @@ class Product(TimeStampedModel):
     price = models.IntegerField(blank=True, default=0)
     qty = models.IntegerField(blank=True, default=0)
     category = models.ForeignKey(
-        Category, on_delete=models.PROTECT, null=True)
+        Category, on_delete=models.SET_NULL, null=True)
     owner = models.ForeignKey(
         'users.User', on_delete=models.CASCADE, null=True)
 

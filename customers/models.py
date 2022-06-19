@@ -24,13 +24,14 @@ class Customer(TimeStampedModel):
     email = models.EmailField(max_length=30, null=True, blank=True)
     phoneNumberRegex = RegexValidator(regex=r"^\d{2,3}-\d{3,4}-\d{4}$")
     phoneNumber = models.CharField(
-        validators=[phoneNumberRegex], max_length=14, unique=True)
+        validators=[phoneNumberRegex], max_length=14)
     secondPhoneNumber = models.CharField(
-        validators=[phoneNumberRegex], max_length=14, unique=True, null=True, blank=True)
+        validators=[phoneNumberRegex], max_length=14, null=True, blank=True)
     totalSpend = models.IntegerField(default=0, blank=True)
-    reference = models.ForeignKey(Reference, on_delete=models.CASCADE)
+    reference = models.CharField(max_length=200)
     owner = models.ForeignKey(
         'users.User', on_delete=models.CASCADE, null=True, related_name="customers")
+    company = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.name

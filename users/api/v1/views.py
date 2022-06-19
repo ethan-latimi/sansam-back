@@ -1,5 +1,8 @@
 # django
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.middleware import csrf
+from django.contrib.auth import authenticate
 
 # rest_framework
 from rest_framework import status
@@ -8,10 +11,26 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import AuthenticationFailed, TokenError, InvalidToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # project
 from ...models import User
 from users.serializers import UserSerializer
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+
+class InvalidUser(AuthenticationFailed):
+    status_code = status.HTTP_406_NOT_ACCEPTABLE
+    default_detail = ("Credentials is invalid or didn't match")
+    default_code = 'user_credentials_not_valid'
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -28,6 +47,34 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        data = request.data
+        response = Response()
+        try:
+            username = data.get('username', None)
+            password = data.get('password', None)
+            user = authenticate(username=username, password=password)
+            serializer.is_valid(raise_exception=True)
+            data = get_tokens_for_user(user)
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=data["refresh"],
+                expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            )
+            csrf.get_token(request)
+            response.data = {
+                "Success": "Login successfully", "access": serializer.validated_data["access"]}
+            return response
+        except Exception as e:
+            message = {'message': '아이디 혹은 비밀번호가 틀렸습니다.'}
+            return Response(message, status=status.HTTP_200_OK)
+        except TokenError as e:
+            print(e)
+            raise InvalidToken(e.args[0])
 
 
 @api_view(['GET', 'POST', 'PUT'])

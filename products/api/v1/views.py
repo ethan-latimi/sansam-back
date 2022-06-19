@@ -28,12 +28,15 @@ def getProductList(request):
     ----
     '''
     user = request.user
-    products = Product.objects.filter(owner=user)
-    page = request.query_params.get('page')
-    paginator = Paginator(products, 10)
-    products = pagination(page, paginator)
+    query = request.query_params.get('keyword')
+    if query:
+        products = Product.objects.filter(
+            owner=user, name__icontains=query).order_by('created')
+    else:
+        products = Product.objects.filter(
+            owner=user).order_by('created')
     serializer = ProductSerializer(products, many=True)
-    return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+    return Response({'result': serializer.data})
 
 
 # 상품 한개 보기
@@ -132,6 +135,8 @@ def putProduct(request, pk):
     user = request.user
     product = Product.objects.get(id=pk)
     data = request.data
+    print(data)
+    print(pk)
     if product.owner == user:
         product.name = data["name"]
         product.price = data["price"]
@@ -258,6 +263,7 @@ def putCategory(request, pk):
     data = request.data
     if category.owner == user:
         category.name = data["name"]
+        category.save()
         serializer = CategorySerializer(category, many=False)
         return Response(serializer.data)
     else:

@@ -44,17 +44,15 @@ def getCustomerList(request):
         order = 'true'
     if query == None:
         query = ''
-    page = request.query_params.get('page')
     if order.lower() == 'false':
         customers = Customer.objects.filter(
             owner=user, name__icontains=query).order_by('totalSpend')
     elif order.lower() == 'true':
         customers = Customer.objects.filter(
             owner=user, name__icontains=query).order_by('-totalSpend')
-    paginator = Paginator(customers, 10)
-    customers = pagination(page, paginator)
+    count = customers.count()
     serializer = CustomerSerializer(customers, many=True)
-    return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+    return Response({'result': serializer.data, 'count': count})
 
 
 # 고객 한명 보기
@@ -117,11 +115,11 @@ def postCustomer(request):
             email=data['email'],
             phoneNumber=data['phoneNumber'],
             secondPhoneNumber=data['secondPhoneNumber'],
-            reference=data['Reference'],
+            reference=data['reference'],
             owner=user,
         )
     except:
-        message = {'detail': '입력하신 내용이 잘못되었습니다.'}
+        message = {'detail': '입력하신 내용이 잘못되었거나 중복입니다.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     serializer = CustomerSerializer(customer, many=False)
     return Response(serializer.data)
@@ -166,6 +164,7 @@ def putCustomer(request, pk):
         customer.name = data['name']
         customer.address = data['address']
         customer.email = data['email']
+        customer.company = data['company']
         customer.phoneNumber = data['phoneNumber']
         customer.secondPhoneNumber = data['secondPhoneNumber']
         customer.reference = data['reference']

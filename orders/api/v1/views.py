@@ -1,5 +1,5 @@
-from math import perm
 import re
+from django.dispatch import receiver
 # Django
 from rest_framework import status
 from django.utils import timezone
@@ -15,14 +15,14 @@ from core.views import pagination
 
 
 # 주문 리스트 : 고객별(pk), 연도별, 완료별(isPaid&&isDelivered), 가격별(높음,낮음)
-# page, customer, byPrice, delivered, start, end 쿼리 구성요소
+# page, receiver, byPrice, delivered, start, end 쿼리 구성요소
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def getOrderList(request):
     regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     user = request.user
     page = request.query_params.get('page')
-    customer = request.query_params.get('customer')
+    receiver = request.query_params.get('receiver')
     isPaid = request.query_params.get('paid')
     byPrice = request.query_params.get('byPrice')
     isDelivered = request.query_params.get("delivered")
@@ -50,8 +50,8 @@ def getOrderList(request):
             isPaid = True
         else:
             isPaid = False
-        if customer:
-            orders = Order.objects.filter(owner=user, customer=customer, isPaid=isPaid, created__range=[
+        if receiver:
+            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, isPaid=isPaid, created__range=[
                                           start, end]).order_by(givenOrder)
         else:
             orders = Order.objects.filter(owner=user, isPaid=isPaid, created__range=[
@@ -65,8 +65,8 @@ def getOrderList(request):
             isDelivered = True
         else:
             isDelivered = False
-        if customer:
-            orders = Order.objects.filter(owner=user, customer=customer, isDelivered=isDelivered, created__range=[
+        if receiver:
+            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, isDelivered=isDelivered, created__range=[
                                           start, end]).order_by(givenOrder)
         else:
             orders = Order.objects.filter(owner=user, isDelivered=isDelivered, created__range=[
@@ -82,8 +82,8 @@ def getOrderList(request):
         else:
             isPaid = False
             isDelivered = False
-        if customer:
-            orders = Order.objects.filter(owner=user, customer=customer, isDelivered=isDelivered, isPaid=isPaid, created__range=[
+        if receiver:
+            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, isDelivered=isDelivered, isPaid=isPaid, created__range=[
                                           start, end]).order_by(givenOrder)
         else:
             orders = Order.objects.filter(owner=user, isDelivered=isDelivered, isPaid=isPaid, created__range=[
@@ -95,13 +95,14 @@ def getOrderList(request):
     else:
         orders = Order.objects.filter(owner=user, created__range=[
             start, end]).order_by(givenOrder)
-        if customer:
-            orders = Order.objects.filter(owner=user, customer=customer, created__range=[
+        if receiver:
+            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, created__range=[
                 start, end]).order_by(givenOrder)
         paginator = Paginator(orders, 10)
+        count = orders.count()
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
-        return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+        return Response({'result': serializer.data, 'count': count, 'page': page, 'pages': paginator.num_pages})
 
 
 # 주문 한개 보기: 주문의 이미지와 배송지 정보 같이 보내주기

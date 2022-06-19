@@ -26,6 +26,7 @@ class Order(TimeStampedModel):
     receiver = models.CharField(
         max_length=100, null=True, default="", blank=True)
     customerMemo = models.CharField(max_length=255, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
     sellerMemo = models.CharField(max_length=255, null=True, blank=True)
     owner = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, default=1)
@@ -40,7 +41,7 @@ class OrderItem(models.Model):
 
     id = models.AutoField(primary_key=True, editable=False)
     product = models.ForeignKey(
-        Product, on_delete=models.PROTECT, related_name="orderItem")
+        Product, on_delete=models.SET_DEFAULT, default="존재하지 않음", related_name="orderItem")
     qty = models.IntegerField(default=0)
     price = models.IntegerField(default=0, blank=True)
     order = models.ForeignKey(

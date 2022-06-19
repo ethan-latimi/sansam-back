@@ -1,3 +1,4 @@
+from datetime import timedelta
 import re
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -9,6 +10,7 @@ from django.core.paginator import Paginator
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db.models import Sum
 
 # Project
 from ...models import Account, Transaction
@@ -33,11 +35,60 @@ def getAccount(request):
     '''
     user = request.user
     account = Account.objects.get(owner=user)
-    serializer = AccountSerializer(account, many=False)
-    return Response(serializer.data)
+    enddate = timezone.now()
+    startdate = enddate - timedelta(days=6)
+    year = enddate.strftime("%Y")
+    print(year)
+    month = startdate.strftime("%m")
+    deposits = Transaction.objects.filter(
+        account=account, type="deposit", updated__month=month).order_by('-created')
+    expenses = Transaction.objects.filter(
+        account=account, type="expense", updated__month=month).order_by('-created')
+    depositsStatus = Transaction.objects.filter(
+        account=account, type="deposit", updated__range=[startdate, enddate]).order_by('-created')
+    expensesStatus = Transaction.objects.filter(
+        account=account, type="expense", updated__range=[startdate, enddate]).order_by('-created')
+    walletSerializer = AccountSerializer(account, many=False)
+    depositSerializer = TransactionSerializer(deposits, many=True)
+    expenseSerializer = TransactionSerializer(expenses, many=True)
+    depositStatusSerializer = TransactionSerializer(depositsStatus, many=True)
+    expenseStatusSerializer = TransactionSerializer(expensesStatus, many=True)
+    deposit = 0
+    expense = 0
+    depositStatus = 0
+    expenseStatus = 0
+    monthlySales = []
+    yearlySales = 0
+    for i in range(12):
+        sale = Transaction.objects.filter(
+            account=account, created__year=year, type="deposit", updated__month=i+1).aggregate(sum=Sum('amount'))
+        if sale["sum"]:
+            monthlySales.append(sale["sum"])
+            yearlySales += sale["sum"]
+        else:
+            monthlySales.append(0)
+    for i in depositSerializer.data:
+        deposit += i["amount"]
+    for i in expenseSerializer.data:
+        expense += i["amount"]
+    for i in depositStatusSerializer.data:
+        depositStatus += i["amount"]
+    for i in expenseStatusSerializer.data:
+        expenseStatus += i["amount"]
+    walletStatus = depositStatus - expenseStatus
+    queryList = {"wallet": {"title": "잔고", "amount": format(walletSerializer.data["wallet"], ','), "status": walletStatus},
+                 "deposit": {"title": "수입", "amount": format(deposit, ','), "status": depositStatus}, "expense": {"title": "지출", "amount": format(expense, ','), "status": expenseStatus}, 'monthlyReport': monthlySales, 'yearlySales': yearlySales/10000}
 
+    return Response(queryList)
+
+
+@api_view(["GET"])
+def getDashboard(request):
+    pass
 
 # 모든 거래내역 보기: 입금, 출금, 날짜별
+
+
 @swagger_auto_schema(
     methods=['get'],
     manual_parameters=[
@@ -135,14 +186,12 @@ def postTransaction(request):
     '''
     account = request.user.account
     data = request.data
-    customer = Customer.objects.get(id=data["customer"])
     try:
         deposit = Transaction.objects.create(
             amount=data['amount'],
             type=data['type'],
             account=account,
             content=data['content'],
-            customer=customer
         )
     except:
         message = {'detail': '입력하신 내용이 잘못되었습니다.'}
@@ -151,7 +200,28 @@ def postTransaction(request):
     return Response(serializer.data)
 
 
+# 거래내역 수정
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def putTransaction(request, pk):
+    account = request.user.account
+    transaction = Transaction.objects.get(id=pk)
+    data = request.data
+    if transaction.account == account:
+        transaction.amount = data["amount"]
+        transaction.type = data["type"]
+        transaction.content = data["content"]
+        print(transaction.content)
+        transaction.save()
+        message = {'detail': '수정 성공'}
+        return Response(message)
+    else:
+        message = {'detail': '수정 실패'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
 # 거래내역 삭제
+
+
 @swagger_auto_schema(
     methods=['delete'],
     responses={
