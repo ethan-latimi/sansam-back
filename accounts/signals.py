@@ -19,7 +19,6 @@ def create_transaction(sender, instance, **kwargs):
     customer = instance.customer
     try:
         pre_transaction = Transaction.objects.get(id=transaction.id)
-        print(pre_transaction)
     except:
         pre_transaction = None
     if transaction.type == 'deposit':
@@ -30,6 +29,7 @@ def create_transaction(sender, instance, **kwargs):
             if pre_transaction:
                 customer.totalSpend -= pre_transaction.amount
             customer.totalSpend += transaction.amount
+            customer.save()
     elif transaction.type == 'expense':
         if pre_transaction:
             transaction.account.wallet += pre_transaction.amount
@@ -38,6 +38,7 @@ def create_transaction(sender, instance, **kwargs):
             if pre_transaction:
                 customer.totalSpend += pre_transaction.amount
             customer.totalSpend -= transaction.amount
+            customer.save()
     transaction.account.save()
 
 
@@ -49,8 +50,10 @@ def delete_transaction(sender, instance, **kwargs):
         transaction.account.wallet -= transaction.amount
         if customer:
             customer.totalSpend -= transaction.amount
+            customer.save()
     elif transaction.type == 'expense':
         transaction.account.wallet += transaction.amount
         if customer:
             customer.totalSpend += transaction.amount
+            customer.save()
     transaction.account.save()

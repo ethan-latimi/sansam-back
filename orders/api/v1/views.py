@@ -1,5 +1,7 @@
+from os import stat
 import re
 from django.dispatch import receiver
+from jinja2 import Undefined
 # Django
 from rest_framework import status
 from django.utils import timezone
@@ -7,11 +9,14 @@ from django.core.paginator import Paginator
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from yaml import serialize
+from customers.models import Customer
 
 # Project
 from orders.models import Order, OrderItem, OrderImage
-from orders.serializers import OrderSerializer, OrderItemSerializer
+from orders.serializers import OrderImageSerializer, OrderSerializer, OrderItemSerializer
 from core.views import pagination
+from products.models import Product
 
 
 # 주문 리스트 : 고객별(pk), 연도별, 완료별(isPaid&&isDelivered), 가격별(높음,낮음)
@@ -105,45 +110,121 @@ def getOrderList(request):
         return Response({'result': serializer.data, 'count': count, 'page': page, 'pages': paginator.num_pages})
 
 
-# 주문 한개 보기: 주문의 이미지와 배송지 정보 같이 보내주기
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def getOrder(request, pk):
-    user = request.user
-    order = Order.objects.get(id=pk)
-    if order.owner == user:
-        serializer = OrderSerializer(Order, many=False)
-        return Response({'result': serializer.data})
-    else:
-        return Response("주문 한개 보기 실패")
-
-
-# 한개의 주문과 관련된 주문 아이템 리스트
-@api_view(["GET"])
+# 주문 생성
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def postOrder(request):
     user = request.user
     data = request.data
+    if data['customerMemo'] == "":
+        data['customerMemo'] = " "
+    if data['sellerMemo'] == "":
+        data['sellerMemo'] = " "
+    customer = Customer.objects.get(id=data['customer'])
     try:
         order = Order.objects.create(
-            customer=data['customer'],
-            payment=data['payment'],
+            customer=customer,
             receiver=data['receiver'],
+            isPaid=data['isPaid'],
+            isDelivered=data['isDelivered'],
+            customerMemo=data['customerMemo'],
+            sellerMemo=data['sellerMemo'],
+            address=data['address'],
             owner=user,
         )
     except:
         message = {'detail': '입력하신 내용이 잘못되었습니다.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
-    serializer = OrderSerializer(order, many=False)
+    return Response({"orderPk": order.pk})
+
+
+# 주문 수정하기
+@api_view(['put'])
+@permission_classes([IsAuthenticated])
+def putOrder(request, pk):
+    user = request.user
+    data = request.data
+    order = Order.objects.get(id=pk)
+    if order.owner == user:
+        order.isPaid = data['isPaid']
+        order.isDelivered = data['isDelivered']
+        order.customerMemo = data['customerMemo']
+        order.sellerMemo = data['sellerMemo']
+        order.address = data['address']
+        order.save()
+        serializer = OrderSerializer(order, many=False)
+        return Response(serializer.data)
+    else:
+        message = {'detail': '수정 실패'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 주문 삭제하기:
+@api_view(['delete'])
+@permission_classes([IsAuthenticated])
+def deleteOrder(request, pk):
+    print(pk)
+    user = request.user
+    order = Order.objects.get(id=pk)
+    print(order)
+    if order.owner == user:
+        order.delete()
+    else:
+        message = {'detail': '삭제 실패'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+    return Response('삭제 성공')
+
+
+# 주문상품 생성하기:
+@api_view(["post"])
+@permission_classes([IsAuthenticated])
+def postOrderItem(request):
+    data = request.data
+    product = Product.objects.get(id=data['id'])
+    order = Order.objects.get(id=data['order'])
+    try:
+        OrderItem.objects.create(
+            product=product,
+            qty=data['value'],
+            order=order,
+        )
+    except:
+        message = {'detail': '입력하신 내용이 잘못되었습니다.'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+    return Response()
+
+
+# 주문 사진 생성하기:
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def postOrderImage(request, pk):
+    image = request.FILES.get('file')
+    order = Order.objects.get(id=pk)
+    try:
+        orderImage = OrderImage.objects.create(
+            image=image,
+            order=order
+        )
+    except:
+        message = {'detail': '입력하신 내용이 잘못되었습니다.'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"ImagePk": orderImage.pk})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getOrderItems(request, pk):
+    orderItems = OrderItem.objects.filter(order=pk)
+    serializer = OrderItemSerializer(orderItems, many=True)
     return Response(serializer.data)
-    # 주문 한개 만들기: 주문 id 반환
 
-    # 주문 아이템 만들기: 리스트 반환
 
-    # 주문 수정하기:
-
-    # 주문 삭제하기:
-
-    # 주문 아이템 수정하기:
-
-    # 주문 아이템 삭제하기
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getOrderImages(request, pk):
+    orderImage = OrderImage.objects.filter(order=pk)
+    serializer = OrderImageSerializer(orderImage, many=True)
+    print(serializer.data)
+    return Response(serializer.data)

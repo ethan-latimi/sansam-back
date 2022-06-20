@@ -198,4 +198,3 @@ def deleteCustomer(request, pk):
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     return Response('삭제 성공')
 
-# 소개자 설정을 만들어야합니다.

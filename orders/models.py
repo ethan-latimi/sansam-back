@@ -17,7 +17,8 @@ class Order(TimeStampedModel):
 
     id = models.AutoField(primary_key=True, editable=False)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
-    payment = models.CharField(choices=PAYMENT_METHODS, max_length=100)
+    payment = models.CharField(
+        choices=PAYMENT_METHODS, max_length=100, null=True)
     price = models.IntegerField(default=0)
     isPaid = models.BooleanField(default=False)
     paidAt = models.DateTimeField(null=True, blank=True)
@@ -55,13 +56,13 @@ class OrderImage(models.Model):
 
     """ Order's Image Model (최종 확인용 사진)"""
 
-    name = models.CharField(max_length=255)
+    id = models.AutoField(primary_key=True, editable=False)
     image = models.ImageField()
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name='orderImages')
 
     def __str__(self):
-        return self.name
+        return self.id
 
 
 class ShippingAddress(models.Model):

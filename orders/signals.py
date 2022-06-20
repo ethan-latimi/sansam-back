@@ -15,15 +15,18 @@ def create_order(sender, instance, created, **kwargs):
             customer=order.customer,
             order=order,
         )
-    transaction = Transaction.objects.get(order=order.id)
-    transaction.save()
-    orderItems = OrderItem.objects.filter(order=order.id)
-    if orderItems != None:
-        for orderItem in orderItems:
-            product = orderItem.product
-            if product.qty > 0:
-                product.qty -= orderItem.qty
-            product.save()
+    try:
+        transaction = Transaction.objects.get(order=order.id)
+        transaction.save()
+        orderItems = OrderItem.objects.filter(order=order.id)
+        if orderItems != None:
+            for orderItem in orderItems:
+                product = orderItem.product
+                if product.qty > 0:
+                    product.qty -= orderItem.qty
+                product.save()
+    except:
+        pass
 
 
 @receiver(pre_save, sender=Order)
