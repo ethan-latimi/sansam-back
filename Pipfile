@@ -14,6 +14,10 @@ djangorestframework-simplejwt = "*"
 drf-yasg = "*"
 flex = "*"
 django-cors-headers = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+whitenoise = "*"
+dj-database-url = "*"
 
 [dev-packages]
 autopep8 = "*"
