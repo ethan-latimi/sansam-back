@@ -187,9 +187,11 @@ GRAPH_MODELS = {
 STATIC_URL = 'static/'
 MEIDA_URL = 'images/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static'
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'static'
+# ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_ROOT = 'static/images'
 

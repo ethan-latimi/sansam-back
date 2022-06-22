@@ -18,6 +18,7 @@ gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = "*"
 dj-database-url = "*"
+graphviz = "*"
 
 [dev-packages]
 autopep8 = "*"
