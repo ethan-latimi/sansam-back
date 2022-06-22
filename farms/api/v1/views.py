@@ -1,5 +1,7 @@
+import re
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.utils import timezone
 
 # Django
 from rest_framework import status
@@ -30,11 +32,8 @@ def getFarmList(request):
     '''
     user = request.user
     farms = Farm.objects.filter(owner=user)
-    page = request.query_params.get('page')
-    paginator = Paginator(farms, 10)
-    farms = pagination(page, paginator)
     serializer = FarmSerializer(farms, many=True)
-    return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+    return Response({'result': serializer.data})
 
 
 # 농장 한개 보기
@@ -78,18 +77,19 @@ def postFarm(request):
     이후 업데이트를 사용하여 농장을 생성하시면 됩니다.
     '''
     user = request.user
+    data = request.data
     try:
         farm = Farm.objects.create(
-            title='Sample 농장',
-            introduction='Sample',
-            description='Description',
+            title=data['title'],
+            introduction=data['introduction'],
+            description=data['description'],
             owner=user,
         )
     except:
         message = {'detail': '입력하신 내용이 잘못되었습니다.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     serializer = FarmSerializer(farm, many=False)
-    return Response(serializer.data)
+    return Response({"farmPk": farm.id})
 
 
 # 농장 이미지
@@ -136,12 +136,11 @@ def uploadFarmImage(request, pk):
     } 
     ```
     '''
-    data = request.data
     user = request.user
-    pk = data['pk']
     farm = Farm.objects.get(id=pk)
+    print(request.FILES.get('image'))
     if farm.owner == user:
-        farm.image = request.FILES.get('image')
+        farm.image = request.FILES.get('file')
         farm.save()
         serializer = FarmImageSerializer(farm, many=False)
         return Response(serializer.data)
@@ -236,13 +235,34 @@ def getLogList(request, farm_pk):
     - 밭의 pk를 같이 보내야 합니다.(farm_pk)
     '''
     user = request.user
+    regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    start = request.query_params.get('start')
+    end = request.query_params.get('end')
+    page = request.query_params.get('page')
+    if start != None and end != None:
+        start = regex.match(start)
+        end = regex.match(end)
+    if page == None:
+        page = 1
+    if start == None or end == None:
+        d = timezone.now()
+        start = f"{d.year}-{d.month-1}-{d.day}"
+        end = f"{d.year}-{d.month}-{d.day+1}"
+    else:
+        start = start.group()
+        end = end.group()
+        list = end.split('-')
+        end = f"{list[0]}-{list[1]}-{int(list[2])+1}"
     try:
         farm = Farm.objects.get(id=farm_pk)
     except:
         return Response('farm does not exists')
     if user == farm.owner:
-        logs = Log.objects.filter(farm_id=farm_pk)
-        page = request.query_params.get('page')
+        if (start and end):
+            logs = Log.objects.filter(
+                farm_id=farm_pk, created__range=[start, end]).order_by('created')
+        else:
+            logs = Log.objects.filter(farm_id=farm_pk)
         paginator = Paginator(logs, 10)
         logs = pagination(page, paginator)
         serializer = LogSerializer(logs, many=True)
@@ -297,21 +317,21 @@ def postLog(request, farm_pk):
     '''
     user = request.user
     farm = Farm.objects.get(id=farm_pk)
+    data = request.data
     try:
         if user == farm.owner:
             log = Log.objects.create(
-                title="Sample 일지",
-                content="일지 내용",
-                worker="작업자",
-                note="특이 사항",
-                weather="맑음",
+                title=data['title'],
+                content=data['content'],
+                worker=data['worker'],
+                note=data['note'],
+                weather=data['weather'],
                 farm=farm,
             )
     except:
         message = {'detail': '유저 정보가 잘못 되었습니다'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
-    serializer = LogSerializer(log, many=False)
-    return Response(serializer.data)
+    return Response({"logPk": log.id})
 
 
 # 일지 이미지
@@ -329,15 +349,15 @@ def postLog(request, farm_pk):
     }
 )
 @api_view(['POST'])
-def uploadLogImage(request, log_id):
+def uploadLogImage(request, log_pk):
     '''
     일지 이미지 생성
     ---
     '''
     data = request.data
+    pk = data["logPk"]
     user = request.user
-    log_id = data['log_id']
-    log = Log.objects.get(id=log_id)
+    log = Log.objects.get(id=pk)
     if log.farm.owner == user:
         log.image = request.FILES.get('image')
         log.save()
@@ -377,9 +397,11 @@ def putLog(request, log_pk):
     ---
     '''
     user = request.user
-    log = Log.objects.get(id=log_pk)
-    farm = log.farm
     data = request.data
+    log = Log.objects.get(id=data["id"])
+    print(log.id)
+    farm = log.farm
+    print(data)
     if farm.owner == user:
         log.title = data['title']
         log.content = data["content"]

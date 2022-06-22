@@ -73,7 +73,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
             message = {'message': '아이디 혹은 비밀번호가 틀렸습니다.'}
             return Response(message, status=status.HTTP_200_OK)
         except TokenError as e:
-            print(e)
             raise InvalidToken(e.args[0])
 
 

@@ -38,7 +38,7 @@ def getAccount(request):
     enddate = timezone.now()
     startdate = enddate - timedelta(days=6)
     year = enddate.strftime("%Y")
-    print(year)
+
     month = startdate.strftime("%m")
     deposits = Transaction.objects.filter(
         account=account, type="deposit", updated__month=month).order_by('-created')
@@ -211,7 +211,7 @@ def putTransaction(request, pk):
         transaction.amount = data["amount"]
         transaction.type = data["type"]
         transaction.content = data["content"]
-        print(transaction.content)
+
         transaction.save()
         message = {'detail': '수정 성공'}
         return Response(message)

@@ -135,8 +135,7 @@ def putProduct(request, pk):
     user = request.user
     product = Product.objects.get(id=pk)
     data = request.data
-    print(data)
-    print(pk)
+
     if product.owner == user:
         product.name = data["name"]
         product.price = data["price"]

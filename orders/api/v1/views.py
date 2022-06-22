@@ -163,10 +163,10 @@ def putOrder(request, pk):
 @api_view(['delete'])
 @permission_classes([IsAuthenticated])
 def deleteOrder(request, pk):
-    print(pk)
+
     user = request.user
     order = Order.objects.get(id=pk)
-    print(order)
+
     if order.owner == user:
         order.delete()
     else:
@@ -226,5 +226,4 @@ def getOrderItems(request, pk):
 def getOrderImages(request, pk):
     orderImage = OrderImage.objects.filter(order=pk)
     serializer = OrderImageSerializer(orderImage, many=True)
-    print(serializer.data)
     return Response(serializer.data)
