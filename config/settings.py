@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY', 'django-insecure-+sg4_!n)(qt7jxz+^d9ip&7ge84lcgyw$=r+t$ly@of-i8@*^9')
+    'DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -42,6 +42,7 @@ PROJECT_APPS = [
     'customers.apps.CustomersConfig',
     "corsheaders",
     'drf_yasg',
+    'storages',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
 ]
@@ -134,15 +135,28 @@ SIMPLE_JWT = {
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sansam',
+        'USER': 'minsucho',
+        'PASSWORD': os.environ.get('DB_PASS'),
+        'HOST': "sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
+        'PORT': '5432'
     }
 }
 
-db_from_env = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(db_from_env)
+#  sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com
+
+# db_from_env = dj_database_url.config(conn_max_age=500)
+# DATABASES['default'].update(db_from_env)
 
 
 # Password validation
@@ -187,13 +201,12 @@ GRAPH_MODELS = {
 STATIC_URL = 'static/'
 MEIDA_URL = 'images/'
 
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'static'
-# ]
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-MEDIA_ROOT = 'static/images'
+MEDIA_ROOT = BASE_DIR / 'static/images'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -211,3 +224,11 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
+
+AWS_QUERYSTRING_AUTH = False
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = "sansam-bucket"

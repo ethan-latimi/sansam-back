@@ -19,6 +19,9 @@ psycopg2-binary = "*"
 whitenoise = "*"
 dj-database-url = "*"
 graphviz = "*"
+django-storages = "*"
+boto3 = "*"
+django-dotenv = "*"
 
 [dev-packages]
 autopep8 = "*"
