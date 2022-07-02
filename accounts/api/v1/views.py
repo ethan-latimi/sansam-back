@@ -38,8 +38,7 @@ def getAccount(request):
     enddate = timezone.now()
     startdate = enddate - timedelta(days=6)
     year = enddate.strftime("%Y")
-
-    month = startdate.strftime("%m")
+    month = enddate.strftime("%m")
     deposits = Transaction.objects.filter(
         account=account, type="deposit", updated__month=month).order_by('-created')
     expenses = Transaction.objects.filter(
@@ -123,17 +122,12 @@ def getTransaction(request):
     if start != None and end != None:
         start = regex.match(start)
         end = regex.match(end)
-    if page == None:
-        page = 1
-    if start == None or end == None:
-        d = timezone.now()
-        start = f"{d.year}-{d.month-1}-{d.day}"
-        end = f"{d.year}-{d.month}-{d.day+1}"
-    else:
         start = start.group()
         end = end.group()
         list = end.split('-')
         end = f"{list[0]}-{list[1]}-{int(list[2])+1}"
+    if page == None:
+        page = 1
     if query == 'deposit':
         deposits = Transaction.objects.filter(
             account=account, type=query).order_by('-created')
@@ -149,12 +143,20 @@ def getTransaction(request):
         serializer = TransactionSerializer(expenses, many=True)
         return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
     else:
-        transactions = Transaction.objects.filter(
-            account=account, created__range=[start, end]).order_by('-created')
-        paginator = Paginator(transactions, 10)
-        transactions = pagination(page, paginator)
-        serializer = TransactionSerializer(transactions, many=True)
-        return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+        if start and end:
+            transactions = Transaction.objects.filter(
+                account=account, created__range=[start, end]).order_by('-created')
+            paginator = Paginator(transactions, 10)
+            transactions = pagination(page, paginator)
+            serializer = TransactionSerializer(transactions, many=True)
+            return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+        else:
+            transactions = Transaction.objects.filter(
+                account=account).order_by('-created')
+            paginator = Paginator(transactions, 10)
+            transactions = pagination(page, paginator)
+            serializer = TransactionSerializer(transactions, many=True)
+            return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
 
 
 # 거래내역 입력

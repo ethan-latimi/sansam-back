@@ -7,7 +7,7 @@ from django.db.models.signals import post_save, post_delete, pre_save
 @receiver(post_save, sender=Order)
 def create_order(sender, instance, created, **kwargs):
     order = instance
-    if created == True:
+    if created == True and order.isPaid == True:
         transaction = Transaction.objects.create(
             amount=order.price,
             type="deposit",
@@ -17,7 +17,10 @@ def create_order(sender, instance, created, **kwargs):
         )
     try:
         transaction = Transaction.objects.get(order=order.id)
-        transaction.save()
+        if transaction.order.isPaid == "refund" or order.isPaid == False:
+            transaction.delete()
+        else:
+            transaction.save()
         orderItems = OrderItem.objects.filter(order=order.id)
         if orderItems != None:
             for orderItem in orderItems:
@@ -26,20 +29,29 @@ def create_order(sender, instance, created, **kwargs):
                     product.qty -= orderItem.qty
                 product.save()
     except:
-        pass
+        if order.isPaid == True:
+            transaction = Transaction.objects.create(
+                amount=order.price,
+                type="deposit",
+                account=order.owner.account,
+                customer=order.customer,
+                order=order,
+            )
+        else:
+            pass
 
 
-@receiver(pre_save, sender=Order)
-def update_order(sender, instance, **kwargs):
-    order = instance
-    if order.receiver != '':
-        order.receiver = order.customer.name
-    items = OrderItem.objects.filter(order=order)
-    if items != None:
-        price = 0
-        for i in items:
-            price += i.price
-        order.price = price
+# @receiver(pre_save, sender=Order)
+# def update_order(sender, instance, **kwargs):
+    # order = instance
+    # if order.receiver != '':
+    #     order.receiver = order.customer.name
+    # items = OrderItem.objects.filter(order=order)
+    # if items != None:
+    #     price = 0
+    #     for i in items:
+    #         price += i.price
+    #     order.price = price
 
 
 @receiver(post_delete, sender=Order)

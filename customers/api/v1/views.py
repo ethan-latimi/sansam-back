@@ -11,7 +11,8 @@ from core.views import pagination
 
 # Project
 from customers.models import Customer
-from customers.serializers import CustomerSerializer
+from customers.serializers import CustomerSerializer, MemoSerializer
+from orders.models import Order
 
 
 @swagger_auto_schema(
@@ -198,3 +199,16 @@ def deleteCustomer(request, pk):
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     return Response('삭제 성공')
 
+
+# 고객 관련 메모
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getMemos(request, pk):
+    user = request.user
+    customer = Customer.objects.get(id=pk)
+    if customer.owner == user:
+        orders = Order.objects.filter(customer=customer)
+        serializer = MemoSerializer(orders, many=True)
+        return Response(serializer.data)
+    else:
+        pass

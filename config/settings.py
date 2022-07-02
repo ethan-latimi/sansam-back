@@ -95,7 +95,7 @@ REST_FRAMEWORK = {
 # JWT
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': False,
@@ -122,7 +122,7 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
     'AUTH_COOKIE': 'refresh_token',
     'AUTH_COOKIE_SECURE': False,
@@ -135,23 +135,23 @@ SIMPLE_JWT = {
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sansam',
-        'USER': 'minsucho',
-        'PASSWORD': os.environ.get('DB_PASS'),
-        'HOST': "sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'sansam',
+#         'USER': 'minsucho',
+#         'PASSWORD': os.environ.get('DB_PASS'),
+#         'HOST': "sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
+#         'PORT': '5432'
+#     }
+# }
 
 #  sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com
 

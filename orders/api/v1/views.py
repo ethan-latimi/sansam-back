@@ -1,7 +1,7 @@
-from os import stat
+from datetime import timedelta
+from django.utils.dateparse import parse_datetime
 import re
-from django.dispatch import receiver
-from jinja2 import Undefined
+
 # Django
 from rest_framework import status
 from django.utils import timezone
@@ -53,14 +53,16 @@ def getOrderList(request):
     if isPaid:
         if isPaid.lower() == "true":
             isPaid = True
+        elif isPaid.lower() == "refund":
+            isPaid = "refund"
         else:
             isPaid = False
         if receiver:
-            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, isPaid=isPaid, created__range=[
-                                          start, end]).order_by(givenOrder)
+            orders = Order.objects.filter(
+                owner=user, receiver__icontains=receiver, isPaid=isPaid).order_by(givenOrder)
         else:
-            orders = Order.objects.filter(owner=user, isPaid=isPaid, created__range=[
-                                          start, end]).order_by(givenOrder)
+            orders = Order.objects.filter(
+                owner=user, isPaid=isPaid).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
@@ -98,11 +100,10 @@ def getOrderList(request):
         serializer = OrderSerializer(orders, many=True)
         return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
     else:
-        orders = Order.objects.filter(owner=user, created__range=[
-            start, end]).order_by(givenOrder)
+        orders = Order.objects.filter(owner=user).order_by(givenOrder)
         if receiver:
-            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, created__range=[
-                start, end]).order_by(givenOrder)
+            orders = Order.objects.filter(
+                owner=user, receiver__icontains=receiver).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         count = orders.count()
         orders = pagination(page, paginator)
@@ -116,6 +117,12 @@ def getOrderList(request):
 def postOrder(request):
     user = request.user
     data = request.data
+    if data['created']:
+        date = str(parse_datetime(data['created'])).split(" ")[0].split("-")
+        res = [ele.lstrip('0') for ele in date]
+        finedDate = timezone.datetime(int(res[0]), int(res[1]), int(res[2]))
+    else:
+        finedDate = timezone.now()
     if data['customerMemo'] == "":
         data['customerMemo'] = " "
     if data['sellerMemo'] == "":
@@ -129,6 +136,7 @@ def postOrder(request):
             isDelivered=data['isDelivered'],
             customerMemo=data['customerMemo'],
             sellerMemo=data['sellerMemo'],
+            created=finedDate,
             address=data['address'],
             owner=user,
         )
@@ -145,10 +153,15 @@ def putOrder(request, pk):
     user = request.user
     data = request.data
     order = Order.objects.get(id=pk)
+    date = str(parse_datetime(data['created'])).split(" ")[0].split("-")
+    res = [ele.lstrip('0') for ele in date]
+    finedDate = timezone.datetime(int(res[0]), int(
+        res[1]), int(res[2])) + timedelta(days=1)
     if order.owner == user:
         order.isPaid = data['isPaid']
         order.isDelivered = data['isDelivered']
         order.customerMemo = data['customerMemo']
+        order.created = finedDate
         order.sellerMemo = data['sellerMemo']
         order.address = data['address']
         order.save()
@@ -159,7 +172,25 @@ def putOrder(request, pk):
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
 
+# 주문 가격 수정하기
+@api_view(['put'])
+@permission_classes([IsAuthenticated])
+def putPrice(request, pk):
+    user = request.user
+    data = request.data
+    order = Order.objects.get(id=pk)
+    if order.owner == user:
+        order.price = data['price']
+        order.save()
+        serializer = OrderSerializer(order, many=False)
+        return Response(serializer.data)
+    else:
+        message = {'detail': '수정 실패'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
 # 주문 삭제하기:
+
+
 @api_view(['delete'])
 @permission_classes([IsAuthenticated])
 def deleteOrder(request, pk):
@@ -192,7 +223,19 @@ def postOrderItem(request):
         message = {'detail': '입력하신 내용이 잘못되었습니다.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     return Response()
+# 주문상품 삭제 하기:
 
+
+@api_view(["delete"])
+@permission_classes([IsAuthenticated])
+def deleteOrderItem(request, pk):
+    orderItem = OrderItem.objects.get(id=pk)
+    try:
+        orderItem.delete()
+    except:
+        message = {'detail': '입력하신 내용이 잘못되었습니다.'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+    return Response()
 
 # 주문 사진 생성하기:
 

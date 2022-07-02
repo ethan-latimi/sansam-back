@@ -14,13 +14,22 @@ class Order(TimeStampedModel):
         (PAYMENT_CASH, 'Cash'),
         (PAYMENT_CARD, 'Card')
     )
+    PAID_FINISH = True
+    PAID_YET = False
+    PAID_REFUND = "refund"
+    PAID_CHOICES = (
+        (PAID_FINISH, 'Cash'),
+        (PAID_YET, 'Card'),
+        (PAID_REFUND, 'Refund')
+    )
 
     id = models.AutoField(primary_key=True, editable=False)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     payment = models.CharField(
         choices=PAYMENT_METHODS, max_length=100, null=True)
     price = models.IntegerField(default=0)
-    isPaid = models.BooleanField(default=False)
+    isPaid = models.CharField(choices=PAID_CHOICES,
+                              default=PAID_FINISH, max_length=100)
     paidAt = models.DateTimeField(null=True, blank=True)
     isDelivered = models.BooleanField(default=False)
     deliveredAt = models.DateTimeField(null=True, blank=True)
@@ -49,7 +58,7 @@ class OrderItem(models.Model):
         Order, on_delete=models.CASCADE, related_name='orderItems')
 
     def __str__(self):
-        return self.product.name
+        return self.product.id
 
 
 class OrderImage(models.Model):

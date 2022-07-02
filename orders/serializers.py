@@ -5,6 +5,7 @@ from orders.models import Order, OrderImage, OrderItem
 class OrderSerializer(serializers.ModelSerializer):
     customerName = serializers.SerializerMethodField(read_only=True)
     phoneNumber = serializers.SerializerMethodField(read_only=True)
+    secondPhoneNumber = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Order
@@ -18,16 +19,25 @@ class OrderSerializer(serializers.ModelSerializer):
         phoneNumber = obj.customer.phoneNumber
         return phoneNumber
 
+    def get_secondPhoneNumber(self, obj):
+        secondPhoneNumber = obj.customer.secondPhoneNumber
+        return secondPhoneNumber
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField(read_only=True)
+    name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OrderItem
         fields = '__all__'
 
-    def get_product(self, obj):
+    def get_name(self, obj):
         product = obj.product.name
+        return product
+
+    def get_product(self, obj):
+        product = obj.product.id
         return product
 
 
