@@ -145,10 +145,10 @@ SIMPLE_JWT = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sansam',
+        'NAME': 'sansam3',
         'USER': 'minsucho',
         'PASSWORD': os.environ.get('DB_PASS'),
-        'HOST': "sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
+        'HOST': "database-1.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
         'PORT': '5432'
     }
 }

@@ -67,6 +67,10 @@ def delete_order(sender, instance, **kwargs):
 def create_order_item(sender, instance, created, **kwargs):
     orderItem = instance
     order = orderItem.order
+    product = orderItem.product
+    product.soldPrice += orderItem.price
+    product.soldNumber += orderItem.qty
+    product.save()
     order.save()
 
 
@@ -75,11 +79,6 @@ def update_order_item(sender, instance, **kwargs):
     orderItem = instance
     product = instance.product
     orderItem.price = product.price * instance.qty
-    if instance.id:
-        pre_orderItem = OrderItem.objects.get(id=instance.id)
-        product = pre_orderItem.product
-        product.qty += pre_orderItem.qty
-        product.save()
 
 
 @receiver(post_delete, sender=OrderItem)
@@ -88,5 +87,8 @@ def delete_order_item(sender, instance, **kwargs):
     product = instance.product
     if product.qty < 0:
         product.qty += orderItem.qty
+    product.soldPrice -= orderItem.price
+    product.soldNumber -= orderItem.qty
+    product.save()
     order = orderItem.order
     order.save()

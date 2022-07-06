@@ -28,12 +28,13 @@ def getOrderList(request):
     user = request.user
     page = request.query_params.get('page')
     receiver = request.query_params.get('receiver')
+    orderNumber = request.query_params.get("orderNumber")
     isPaid = request.query_params.get('paid')
     byPrice = request.query_params.get('byPrice')
     isDelivered = request.query_params.get("delivered")
     start = request.query_params.get('start')
     end = request.query_params.get('end')
-    givenOrder = "-created"
+    givenOrder = "-id"
     if byPrice == "true":
         givenOrder = "-price"
     if start != None and end != None:
@@ -59,10 +60,12 @@ def getOrderList(request):
             isPaid = False
         if receiver:
             orders = Order.objects.filter(
-                owner=user, receiver__icontains=receiver, isPaid=isPaid).order_by(givenOrder)
+                owner=user, customer__name__icontains=receiver, isPaid=isPaid, created__range=[
+                    start, end]).order_by(givenOrder)
         else:
             orders = Order.objects.filter(
-                owner=user, isPaid=isPaid).order_by(givenOrder)
+                owner=user, isPaid=isPaid, created__range=[
+                    start, end]).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
@@ -73,7 +76,7 @@ def getOrderList(request):
         else:
             isDelivered = False
         if receiver:
-            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, isDelivered=isDelivered, created__range=[
+            orders = Order.objects.filter(owner=user, customer__name__icontains=receiver, isDelivered=isDelivered, created__range=[
                                           start, end]).order_by(givenOrder)
         else:
             orders = Order.objects.filter(owner=user, isDelivered=isDelivered, created__range=[
@@ -90,7 +93,7 @@ def getOrderList(request):
             isPaid = False
             isDelivered = False
         if receiver:
-            orders = Order.objects.filter(owner=user, receiver__icontains=receiver, isDelivered=isDelivered, isPaid=isPaid, created__range=[
+            orders = Order.objects.filter(owner=user, customer__name__icontains=receiver, isDelivered=isDelivered, isPaid=isPaid, created__range=[
                                           start, end]).order_by(givenOrder)
         else:
             orders = Order.objects.filter(owner=user, isDelivered=isDelivered, isPaid=isPaid, created__range=[
@@ -99,11 +102,17 @@ def getOrderList(request):
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
         return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+    elif orderNumber:
+        orders = Order.objects.get(owner=user, id=orderNumber)
+        serializer = OrderSerializer(orders, many=False)
+        return Response({'result': [serializer.data], 'page': 1, 'pages': 1})
     else:
-        orders = Order.objects.filter(owner=user).order_by(givenOrder)
+        orders = Order.objects.filter(owner=user, created__range=[
+            start, end]).order_by(givenOrder)
         if receiver:
             orders = Order.objects.filter(
-                owner=user, receiver__icontains=receiver).order_by(givenOrder)
+                owner=user, customer__name__icontains=receiver, created__range=[
+                    start, end]).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         count = orders.count()
         orders = pagination(page, paginator)
@@ -112,8 +121,8 @@ def getOrderList(request):
 
 
 # 주문 생성
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@ api_view(["POST"])
+@ permission_classes([IsAuthenticated])
 def postOrder(request):
     user = request.user
     data = request.data
@@ -147,8 +156,8 @@ def postOrder(request):
 
 
 # 주문 수정하기
-@api_view(['put'])
-@permission_classes([IsAuthenticated])
+@ api_view(['put'])
+@ permission_classes([IsAuthenticated])
 def putOrder(request, pk):
     user = request.user
     data = request.data
@@ -173,8 +182,8 @@ def putOrder(request, pk):
 
 
 # 주문 가격 수정하기
-@api_view(['put'])
-@permission_classes([IsAuthenticated])
+@ api_view(['put'])
+@ permission_classes([IsAuthenticated])
 def putPrice(request, pk):
     user = request.user
     data = request.data
@@ -191,8 +200,8 @@ def putPrice(request, pk):
 # 주문 삭제하기:
 
 
-@api_view(['delete'])
-@permission_classes([IsAuthenticated])
+@ api_view(['delete'])
+@ permission_classes([IsAuthenticated])
 def deleteOrder(request, pk):
 
     user = request.user
@@ -207,8 +216,8 @@ def deleteOrder(request, pk):
 
 
 # 주문상품 생성하기:
-@api_view(["post"])
-@permission_classes([IsAuthenticated])
+@ api_view(["post"])
+@ permission_classes([IsAuthenticated])
 def postOrderItem(request):
     data = request.data
     product = Product.objects.get(id=data['id'])
@@ -226,8 +235,8 @@ def postOrderItem(request):
 # 주문상품 삭제 하기:
 
 
-@api_view(["delete"])
-@permission_classes([IsAuthenticated])
+@ api_view(["delete"])
+@ permission_classes([IsAuthenticated])
 def deleteOrderItem(request, pk):
     orderItem = OrderItem.objects.get(id=pk)
     try:
@@ -240,8 +249,8 @@ def deleteOrderItem(request, pk):
 # 주문 사진 생성하기:
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@ api_view(["POST"])
+@ permission_classes([IsAuthenticated])
 def postOrderImage(request, pk):
     image = request.FILES.get('file')
     order = Order.objects.get(id=pk)
@@ -256,16 +265,16 @@ def postOrderImage(request, pk):
     return Response({"ImagePk": orderImage.pk})
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@ api_view(["GET"])
+@ permission_classes([IsAuthenticated])
 def getOrderItems(request, pk):
     orderItems = OrderItem.objects.filter(order=pk)
     serializer = OrderItemSerializer(orderItems, many=True)
     return Response(serializer.data)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@ api_view(["GET"])
+@ permission_classes([IsAuthenticated])
 def getOrderImages(request, pk):
     orderImage = OrderImage.objects.filter(order=pk)
     serializer = OrderImageSerializer(orderImage, many=True)

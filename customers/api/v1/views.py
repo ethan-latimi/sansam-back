@@ -41,16 +41,26 @@ def getCustomerList(request):
     user = request.user
     query = request.query_params.get('keyword')
     order = request.query_params.get('order')
+    phoneNumber = request.query_params.get("phoneNumber")
+    print(phoneNumber)
     if order == None:
         order = 'true'
     if query == None:
         query = ''
     if order.lower() == 'false':
-        customers = Customer.objects.filter(
-            owner=user, name__icontains=query).order_by('totalSpend')
+        if phoneNumber:
+            customers = Customer.objects.filter(
+                owner=user, phoneNumber__startswith=phoneNumber)
+        else:
+            customers = Customer.objects.filter(
+                owner=user, name__icontains=query).order_by('totalSpend')
     elif order.lower() == 'true':
-        customers = Customer.objects.filter(
-            owner=user, name__icontains=query).order_by('-totalSpend')
+        if phoneNumber:
+            customers = Customer.objects.filter(
+                owner=user, phoneNumber__startswith=phoneNumber)
+        else:
+            customers = Customer.objects.filter(
+                owner=user, name__icontains=query).order_by('-totalSpend')
     count = customers.count()
     serializer = CustomerSerializer(customers, many=True)
     return Response({'result': serializer.data, 'count': count})

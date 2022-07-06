@@ -26,6 +26,8 @@ class Product(TimeStampedModel):
     name = models.CharField(max_length=200)
     price = models.IntegerField(blank=True, default=0)
     qty = models.IntegerField(blank=True, default=0)
+    soldPrice = models.IntegerField(blank=True, default=0)
+    soldNumber = models.IntegerField(blank=True, default=0)
     category = models.ForeignKey(
         Category, on_delete=models.PROTECT, null=True)
     owner = models.ForeignKey(

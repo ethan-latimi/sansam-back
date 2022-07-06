@@ -260,7 +260,7 @@ def getLogList(request, farm_pk):
     if user == farm.owner:
         if (start and end):
             logs = Log.objects.filter(
-                farm_id=farm_pk, created__range=[start, end]).order_by('created')
+                farm_id=farm_pk, created__range=[start, end]).order_by('-created')
         else:
             logs = Log.objects.filter(farm_id=farm_pk)
         paginator = Paginator(logs, 10)
@@ -359,7 +359,8 @@ def uploadLogImage(request, log_pk):
     user = request.user
     log = Log.objects.get(id=pk)
     if log.farm.owner == user:
-        log.image = request.FILES.get('image')
+        log.image = request.FILES.get('file')
+        print(log.image)
         log.save()
         serializer = LogImageSerializer(log, many=False)
         return Response(serializer.data)
