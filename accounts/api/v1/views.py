@@ -40,13 +40,13 @@ def getAccount(request):
     year = enddate.strftime("%Y")
     month = enddate.strftime("%m")
     deposits = Transaction.objects.filter(
-        account=account, type="deposit", updated__month=month).order_by('-created')
+        account=account, type="deposit", created__month=month).order_by('-created')
     expenses = Transaction.objects.filter(
-        account=account, type="expense", updated__month=month).order_by('-created')
+        account=account, type="expense", created__month=month).order_by('-created')
     depositsStatus = Transaction.objects.filter(
-        account=account, type="deposit", updated__range=[startdate, enddate]).order_by('-created')
+        account=account, type="deposit", created__range=[startdate, enddate]).order_by('-created')
     expensesStatus = Transaction.objects.filter(
-        account=account, type="expense", updated__range=[startdate, enddate]).order_by('-created')
+        account=account, type="expense", created__range=[startdate, enddate]).order_by('-created')
     walletSerializer = AccountSerializer(account, many=False)
     depositSerializer = TransactionSerializer(deposits, many=True)
     expenseSerializer = TransactionSerializer(expenses, many=True)
@@ -60,12 +60,13 @@ def getAccount(request):
     yearlySales = 0
     for i in range(12):
         sale = Transaction.objects.filter(
-            account=account, created__year=year, type="deposit", updated__month=i+1).aggregate(sum=Sum('amount'))
+            account=account, created__year=year, type="deposit", created__month=i+1).aggregate(sum=Sum('amount'))
         if sale["sum"]:
             monthlySales.append(sale["sum"])
             yearlySales += sale["sum"]
         else:
             monthlySales.append(0)
+    print(yearlySales)
     for i in depositSerializer.data:
         deposit += i["amount"]
     for i in expenseSerializer.data:
