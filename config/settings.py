@@ -135,23 +135,23 @@ SIMPLE_JWT = {
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'sansam3',
-#         'USER': 'minsucho',
-#         'PASSWORD': os.environ.get('DB_PASS'),
-#         'HOST': "database-1.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
-#         'PORT': '5432'
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sansam3',
+        'USER': 'minsucho',
+        'PASSWORD': os.environ.get('DB_PASS'),
+        'HOST': "database-1.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com",
+        'PORT': '5432'
+    }
+}
 
 #  sansam-identifier.ccp7471dpi1i.ap-northeast-2.rds.amazonaws.com
 
