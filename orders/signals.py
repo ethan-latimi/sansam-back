@@ -10,6 +10,7 @@ def create_order(sender, instance, created, **kwargs):
     if created == True and order.isPaid == True:
         transaction = Transaction.objects.create(
             amount=order.price,
+            created=order.created,
             type="deposit",
             account=order.owner.account,
             customer=order.customer,

@@ -44,13 +44,13 @@ def getOrderList(request):
         page = 1
     if start == None or end == None:
         d = timezone.now()
-        start = f"{d.year}-{d.month-1}-{d.day}"
-        end = f"{d.year}-{d.month}-{d.day+1}"
+        start = f"{d.year-3}-{d.month}-{d.day}"
+        end = f"{d.year}-{d.month+3}-{d.day}"
     else:
         start = start.group()
         end = end.group()
         list = end.split('-')
-        end = f"{list[0]}-{list[1]}-{int(list[2])+1}"
+        end = f"{list[0]}-{list[1]}-{int(list[2])}"
     if isPaid:
         if isPaid.lower() == "true":
             isPaid = True

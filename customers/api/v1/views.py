@@ -42,7 +42,6 @@ def getCustomerList(request):
     query = request.query_params.get('keyword')
     order = request.query_params.get('order')
     phoneNumber = request.query_params.get("phoneNumber")
-    print(phoneNumber)
     if order == None:
         order = 'true'
     if query == None:
@@ -124,6 +123,7 @@ def postCustomer(request):
             name=data['name'],
             address=data['address'],
             email=data['email'],
+            company=data['company'],
             phoneNumber=data['phoneNumber'],
             secondPhoneNumber=data['secondPhoneNumber'],
             reference=data['reference'],
