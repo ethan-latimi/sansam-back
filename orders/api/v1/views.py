@@ -128,8 +128,15 @@ def postOrder(request):
     data = request.data
     if data['created']:
         date = str(parse_datetime(data['created'])).split(" ")[0].split("-")
-        res = [ele.lstrip('0') for ele in date]
-        finedDate = timezone.datetime(int(res[0]), int(res[1]), int(res[2]))
+        checker = str(parse_datetime(data['created'])).split(" ")[1]
+        if checker == "15:00:00+00:00":
+            res = [ele.lstrip('0') for ele in date]
+            finedDate = timezone.datetime(int(res[0]), int(
+                res[1]), int(res[2])) + timedelta(days=1)
+        else:
+            res = [ele.lstrip('0') for ele in date]
+            finedDate = timezone.datetime(
+                int(res[0]), int(res[1]), int(res[2]))
     else:
         finedDate = timezone.now()
     if data['customerMemo'] == "":
@@ -162,6 +169,7 @@ def putOrder(request, pk):
     user = request.user
     data = request.data
     order = Order.objects.get(id=pk)
+    print("여기는 수정", data['created'])
     date = str(parse_datetime(data['created'])).split(" ")[0].split("-")
     res = [ele.lstrip('0') for ele in date]
     finedDate = timezone.datetime(int(res[0]), int(

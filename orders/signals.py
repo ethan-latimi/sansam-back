@@ -22,13 +22,6 @@ def create_order(sender, instance, created, **kwargs):
             transaction.delete()
         else:
             transaction.save()
-        orderItems = OrderItem.objects.filter(order=order.id)
-        if orderItems != None:
-            for orderItem in orderItems:
-                product = orderItem.product
-                if product.qty > 0:
-                    product.qty -= orderItem.qty
-                product.save()
     except:
         if order.isPaid == True:
             transaction = Transaction.objects.create(
@@ -69,6 +62,9 @@ def create_order_item(sender, instance, created, **kwargs):
     orderItem = instance
     order = orderItem.order
     product = orderItem.product
+    if product.qty > 0:
+        product.qty -= orderItem.qty
+    product = orderItem.product
     product.soldPrice += orderItem.price
     product.soldNumber += orderItem.qty
     product.save()
@@ -86,8 +82,7 @@ def update_order_item(sender, instance, **kwargs):
 def delete_order_item(sender, instance, **kwargs):
     orderItem = instance
     product = instance.product
-    if product.qty < 0:
-        product.qty += orderItem.qty
+    product.qty += orderItem.qty
     product.soldPrice -= orderItem.price
     product.soldNumber -= orderItem.qty
     product.save()
