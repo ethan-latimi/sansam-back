@@ -10,7 +10,12 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    customerName = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Transaction
         fields = '__all__'
+
+    def get_customerName(self, obj):
+        customer = obj.customer.name
+        return customer

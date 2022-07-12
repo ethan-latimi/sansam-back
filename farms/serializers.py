@@ -19,10 +19,15 @@ class FarmImageSerializer(serializers.ModelSerializer):
 
 
 class LogSerializer(serializers.ModelSerializer):
+    farmName = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Log
         fields = '__all__'
+
+    def get_farmName(self, obj):
+        farmName = obj.farm.title
+        return farmName
 
 
 class LogImageSerializer(serializers.ModelSerializer):

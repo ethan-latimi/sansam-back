@@ -66,7 +66,6 @@ def getAccount(request):
             yearlySales += sale["sum"]
         else:
             monthlySales.append(0)
-    print(yearlySales)
     for i in depositSerializer.data:
         deposit += i["amount"]
     for i in expenseSerializer.data:
@@ -131,14 +130,14 @@ def getTransaction(request):
         page = 1
     if query == 'deposit':
         deposits = Transaction.objects.filter(
-            account=account, type=query).order_by('-created')
+            account=account, type=query).order_by('-order')
         paginator = Paginator(deposits, 10)
         deposits = pagination(page, paginator)
         serializer = TransactionSerializer(deposits, many=True)
         return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
     elif query == 'expense':
         expenses = Transaction.objects.filter(
-            account=account, type=query).order_by('-created')
+            account=account, type=query).order_by('-order')
         paginator = Paginator(expenses, 10)
         expenses = pagination(page, paginator)
         serializer = TransactionSerializer(expenses, many=True)
@@ -146,14 +145,14 @@ def getTransaction(request):
     else:
         if start and end:
             transactions = Transaction.objects.filter(
-                account=account, created__range=[start, end]).order_by('-created')
+                account=account, created__range=[start, end]).order_by('-order')
             paginator = Paginator(transactions, 10)
             transactions = pagination(page, paginator)
             serializer = TransactionSerializer(transactions, many=True)
             return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
         else:
             transactions = Transaction.objects.filter(
-                account=account).order_by('-created')
+                account=account).order_by('-order')
             paginator = Paginator(transactions, 10)
             transactions = pagination(page, paginator)
             serializer = TransactionSerializer(transactions, many=True)
@@ -214,7 +213,6 @@ def putTransaction(request, pk):
         transaction.amount = data["amount"]
         transaction.type = data["type"]
         transaction.content = data["content"]
-
         transaction.save()
         message = {'detail': '수정 성공'}
         return Response(message)
@@ -222,9 +220,8 @@ def putTransaction(request, pk):
         message = {'detail': '수정 실패'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
+
 # 거래내역 삭제
-
-
 @swagger_auto_schema(
     methods=['delete'],
     responses={

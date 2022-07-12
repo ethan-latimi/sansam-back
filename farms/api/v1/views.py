@@ -1,3 +1,4 @@
+from datetime import timedelta
 import re
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -270,6 +271,25 @@ def getLogList(request, farm_pk):
     else:
         message = {'detail': '일지 찾기 실패'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+# 최근 일지 보기
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getRecentLogList(request):
+    '''
+    일지(log) 목록
+    ---
+    영농일지를 리스트로 볼수 있습니다.
+    - 밭의 pk를 같이 보내야 합니다.(farm_pk)
+    '''
+    startdate = timezone.now() - timedelta(days=2)
+    enddate = timezone.now()
+    logs = Log.objects.filter(
+        created__range=[startdate, enddate]).order_by("-created")
+    serializer = LogSerializer(logs, many=True)
+    return Response({'result': serializer.data})
 
 
 # 일지 한개 보기

@@ -14,6 +14,7 @@ urlpatterns = [
     path('logs/<str:farm_pk>/', views.getLogList, name='log-list'),
     path('log/upload/<str:log_pk>/',
          views.uploadLogImage, name='upload-farm-image'),
+    path('log/recentlogs/', views.getRecentLogList, name='recent-log'),
     path('log/<str:log_pk>/', views.getLog, name='log'),
     path('log/create/<str:farm_pk>/', views.postLog, name='post-log'),
     path('log/update/<str:log_pk>/', views.putLog, name='put-log'),

@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from yaml import serialize
 from customers.models import Customer
+from django.db.models import Q
 
 # Project
 from orders.models import Order, OrderItem, OrderImage
@@ -32,6 +33,7 @@ def getOrderList(request):
     isPaid = request.query_params.get('paid')
     byPrice = request.query_params.get('byPrice')
     isDelivered = request.query_params.get("delivered")
+    dashboard = request.query_params.get("dashboard")
     start = request.query_params.get('start')
     end = request.query_params.get('end')
     givenOrder = "-id"
@@ -70,6 +72,14 @@ def getOrderList(request):
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
         return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
+    elif dashboard == "dashboard":
+        orders = Order.objects.filter(owner=user, created__range=[
+            start, end]).filter(Q(isDelivered=False) | Q(isPaid=False)).order_by(givenOrder)
+        paginator = Paginator(orders, 10)
+        orders = pagination(page, paginator)
+        count = Order.objects.count()
+        serializer = OrderSerializer(orders, many=True)
+        return Response({'result': serializer.data, 'count': count, 'page': page, 'pages': paginator.num_pages})
     elif isDelivered:
         if isDelivered.lower() == "true":
             isDelivered = True
@@ -114,7 +124,7 @@ def getOrderList(request):
                 owner=user, customer__name__icontains=receiver, created__range=[
                     start, end]).order_by(givenOrder)
         paginator = Paginator(orders, 10)
-        count = orders.count()
+        count = Order.objects.count()
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
         return Response({'result': serializer.data, 'count': count, 'page': page, 'pages': paginator.num_pages})
@@ -149,11 +159,13 @@ def postOrder(request):
             customer=customer,
             receiver=data['receiver'],
             isPaid=data['isPaid'],
+            payment=data['payment'],
             isDelivered=data['isDelivered'],
             customerMemo=data['customerMemo'],
             sellerMemo=data['sellerMemo'],
             created=finedDate,
             address=data['address'],
+            receiverPhoneNumber=data['receiverPhoneNumber'],
             owner=user,
         )
     except:
@@ -178,6 +190,7 @@ def putOrder(request, pk):
         order.isPaid = data['isPaid']
         order.isDelivered = data['isDelivered']
         order.customerMemo = data['customerMemo']
+        order.payment = data['payment']
         order.created = finedDate
         order.sellerMemo = data['sellerMemo']
         order.address = data['address']
@@ -240,9 +253,9 @@ def postOrderItem(request):
         message = {'detail': '입력하신 내용이 잘못되었습니다.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     return Response()
+
+
 # 주문상품 삭제 하기:
-
-
 @ api_view(["delete"])
 @ permission_classes([IsAuthenticated])
 def deleteOrderItem(request, pk):
@@ -254,9 +267,8 @@ def deleteOrderItem(request, pk):
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
     return Response()
 
+
 # 주문 사진 생성하기:
-
-
 @ api_view(["POST"])
 @ permission_classes([IsAuthenticated])
 def postOrderImage(request, pk):

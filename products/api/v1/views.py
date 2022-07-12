@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from orders.models import Order, OrderItem
 
 # Project
 from products.models import Category, Product
@@ -31,12 +32,14 @@ def getProductList(request):
     query = request.query_params.get('keyword')
     if query:
         products = Product.objects.filter(
-            owner=user, name__icontains=query).order_by('created')
+            owner=user, name__icontains=query)
+        serializer = ProductSerializer(products, many=True)
+        return Response({'result': serializer.data})
     else:
         products = Product.objects.filter(
-            owner=user).order_by('created')
-    serializer = ProductSerializer(products, many=True)
-    return Response({'result': serializer.data})
+            owner=user).order_by('-soldPrice')
+        serializer = ProductSerializer(products, many=True)
+        return Response({'result': serializer.data})
 
 
 # 상품 한개 보기
@@ -151,6 +154,31 @@ def putProduct(request, pk):
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
 
+# 상품 수량
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def putProductQty(request, pk):
+    '''
+    상품 수정하기
+    ---
+    '''
+    user = request.user
+    orderItem = OrderItem.objects.get(id=pk)
+    product = Product.objects.get(id=orderItem.product.id)
+    data = request.data
+    if product.owner == user:
+        if data["kind"] == "plus":
+            product.qty += data["data"]["qty"]
+        elif data["kind"] == "minus":
+            product.qty -= data["data"]["qty"]
+        product.save()
+        serializer = ProductSerializer(product, many=False)
+        return Response(serializer.data)
+    else:
+        message = {'detail': '수정 실패'}
+        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+
 # 상품 삭제
 @swagger_auto_schema(
     methods=['delete'],
@@ -189,7 +217,7 @@ def getCategoryList(request):
     ---
     '''
     user = request.user
-    category = Category.objects.filter(owner=user)
+    category = Category.objects.filter(owner=user).order_by('id')
     page = request.query_params.get('page')
     paginator = Paginator(category, 10)
     category = pagination(page, paginator)
