@@ -21,6 +21,7 @@ def create_order(sender, instance, created, **kwargs):
         if transaction.order.isPaid == "refund" or order.isPaid == False:
             transaction.delete()
         else:
+            transaction.created = order.created
             transaction.save()
     except:
         if order.isPaid == True:

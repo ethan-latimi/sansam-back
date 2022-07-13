@@ -181,7 +181,6 @@ def putOrder(request, pk):
     user = request.user
     data = request.data
     order = Order.objects.get(id=pk)
-    print("여기는 수정", data['created'])
     date = str(parse_datetime(data['created'])).split(" ")[0].split("-")
     res = [ele.lstrip('0') for ele in date]
     finedDate = timezone.datetime(int(res[0]), int(
