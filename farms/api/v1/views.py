@@ -3,6 +3,8 @@ import re
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+
 
 # Django
 from rest_framework import status
@@ -286,8 +288,9 @@ def getRecentLogList(request):
     '''
     startdate = timezone.now() - timedelta(days=2)
     enddate = timezone.now()
+    user = request.user
     logs = Log.objects.filter(
-        created__range=[startdate, enddate]).order_by("-created")
+        created__range=[startdate, enddate]).filter(farm__owner=user).order_by("-created")
     serializer = LogSerializer(logs, many=True)
     return Response({'result': serializer.data})
 
@@ -380,7 +383,6 @@ def uploadLogImage(request, log_pk):
     log = Log.objects.get(id=pk)
     if log.farm.owner == user:
         log.image = request.FILES.get('file')
-        print(log.image)
         log.save()
         serializer = LogImageSerializer(log, many=False)
         return Response(serializer.data)
@@ -419,11 +421,23 @@ def putLog(request, log_pk):
     '''
     user = request.user
     data = request.data
+    if data['created']:
+        date = str(parse_datetime(data['created'])).split(" ")[0].split("-")
+        checker = str(parse_datetime(data['created'])).split(" ")[1]
+        if checker == "15:00:00+00:00":
+            res = [ele.lstrip('0') for ele in date]
+            finedDate = timezone.datetime(int(res[0]), int(
+                res[1]), int(res[2])) + timedelta(days=1)
+        else:
+            res = [ele.lstrip('0') for ele in date]
+            finedDate = timezone.datetime(
+                int(res[0]), int(res[1]), int(res[2]))
+    else:
+        finedDate = timezone.now()
     log = Log.objects.get(id=data["id"])
-    print(log.id)
     farm = log.farm
-    print(data)
     if farm.owner == user:
+        log.created = finedDate
         log.title = data['title']
         log.content = data["content"]
         log.worker = data['worker']
