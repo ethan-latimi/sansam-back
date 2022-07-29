@@ -36,7 +36,7 @@ def getOrderList(request):
     dashboard = request.query_params.get("dashboard")
     start = request.query_params.get('start')
     end = request.query_params.get('end')
-    givenOrder = "-id"
+    givenOrder = "-created"
     if byPrice == "true":
         givenOrder = "-price"
     if start != None and end != None:
@@ -187,7 +187,9 @@ def putOrder(request, pk):
         res[1]), int(res[2])) + timedelta(days=1)
     if order.owner == user:
         order.isPaid = data['isPaid']
+        order.receiverPhoneNumber = data['receiverPhoneNumber']
         order.isDelivered = data['isDelivered']
+        order.receiver = data['receiver']
         order.customerMemo = data['customerMemo']
         order.payment = data['payment']
         order.created = finedDate

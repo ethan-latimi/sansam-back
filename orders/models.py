@@ -8,11 +8,18 @@ from products.models import Product
 class Order(TimeStampedModel):
 
     """ Order Model (주문)"""
-    PAYMENT_CASH = 'cash'
-    PAYMENT_CARD = 'card'
+    PAYMENT_CASH = 'cash'  # 현금
+    PAYMENT_CARD = 'card'  # 농장 카드
+    PAYMENT_TRANSFER = 'transfer'  # 이체
+    PAYMENT_NAVER = 'naver'  # 네이버 페이
+    PAYMENT_HOMEPAGE_CARD = 'hompageCard'  # 홈피 카드
+
     PAYMENT_METHODS = (
         (PAYMENT_CASH, 'Cash'),
-        (PAYMENT_CARD, 'Card')
+        (PAYMENT_CARD, 'Card'),
+        (PAYMENT_TRANSFER, 'Transfer'),
+        (PAYMENT_NAVER, 'Naver'),
+        (PAYMENT_HOMEPAGE_CARD, 'HomePageCard')
     )
     PAID_FINISH = True
     PAID_YET = False

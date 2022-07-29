@@ -133,7 +133,7 @@ SIMPLE_JWT = {
 
 
 # Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+# https: // docs.djangoproject.com/en/4.0/ref/settings/  # databases
 
 # DATABASES = {
 #     'default': {
