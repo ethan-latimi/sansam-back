@@ -53,6 +53,7 @@ def getOrderList(request):
         end = end.group()
         list = end.split('-')
         end = f"{list[0]}-{list[1]}-{int(list[2])}"
+    print("1차")
     if isPaid:
         if isPaid.lower() == "true":
             isPaid = True
@@ -73,8 +74,9 @@ def getOrderList(request):
         serializer = OrderSerializer(orders, many=True)
         return Response({'result': serializer.data, 'page': page, 'pages': paginator.num_pages})
     elif dashboard == "dashboard":
-        orders = Order.objects.filter(owner=user, created__range=[
-            start, end]).filter(Q(isDelivered=False) | Q(isPaid=False)).order_by(givenOrder)
+        orders = Order.objects.filter(owner=user).filter(
+            Q(isDelivered=False) | Q(isPaid=False)).order_by(givenOrder)
+        print("메인 문제는 date였다.")
         paginator = Paginator(orders, 10)
         orders = pagination(page, paginator)
         count = Order.objects.count()
@@ -117,8 +119,8 @@ def getOrderList(request):
         serializer = OrderSerializer(orders, many=False)
         return Response({'result': [serializer.data], 'page': 1, 'pages': 1})
     else:
-        orders = Order.objects.filter(owner=user, created__range=[
-            start, end]).order_by(givenOrder)
+        orders = Order.objects.filter(owner=user).order_by(givenOrder)
+        print("주문에서 문제")
         if receiver:
             orders = Order.objects.filter(
                 owner=user, customer__name__icontains=receiver, created__range=[
