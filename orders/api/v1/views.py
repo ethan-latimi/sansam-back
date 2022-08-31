@@ -118,7 +118,7 @@ def getOrderList(request):
         serializer = OrderSerializer(orders, many=False)
         return Response({'result': [serializer.data], 'page': 1, 'pages': 1})
     else:
-        orders = Order.objects.filter(owner=user).order_by(givenOrder)
+        orders = Order.objects.filter(owner=user).order_by("-created")
         print("주문에서 문제")
         if receiver:
             orders = Order.objects.filter(
