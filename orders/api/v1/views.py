@@ -22,6 +22,7 @@ from products.models import Product
 
 # 주문 리스트 : 고객별(pk), 연도별, 완료별(isPaid&&isDelivered), 가격별(높음,낮음)
 # page, receiver, byPrice, delivered, start, end 쿼리 구성요소
+# created__range=[start, end] 문제
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def getOrderList(request):
@@ -63,12 +64,10 @@ def getOrderList(request):
             isPaid = False
         if receiver:
             orders = Order.objects.filter(
-                owner=user, customer__name__icontains=receiver, isPaid=isPaid, created__range=[
-                    start, end]).order_by(givenOrder)
+                owner=user, customer__name__icontains=receiver, isPaid=isPaid).order_by(givenOrder)
         else:
             orders = Order.objects.filter(
-                owner=user, isPaid=isPaid, created__range=[
-                    start, end]).order_by(givenOrder)
+                owner=user, isPaid=isPaid).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
@@ -91,8 +90,8 @@ def getOrderList(request):
             orders = Order.objects.filter(owner=user, customer__name__icontains=receiver, isDelivered=isDelivered, created__range=[
                                           start, end]).order_by(givenOrder)
         else:
-            orders = Order.objects.filter(owner=user, isDelivered=isDelivered, created__range=[
-                                          start, end]).order_by(givenOrder)
+            orders = Order.objects.filter(
+                owner=user, isDelivered=isDelivered).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
@@ -105,11 +104,11 @@ def getOrderList(request):
             isPaid = False
             isDelivered = False
         if receiver:
-            orders = Order.objects.filter(owner=user, customer__name__icontains=receiver, isDelivered=isDelivered, isPaid=isPaid, created__range=[
-                                          start, end]).order_by(givenOrder)
+            orders = Order.objects.filter(owner=user, customer__name__icontains=receiver,
+                                          isDelivered=isDelivered, isPaid=isPaid).order_by(givenOrder)
         else:
-            orders = Order.objects.filter(owner=user, isDelivered=isDelivered, isPaid=isPaid, created__range=[
-                                          start, end]).order_by(givenOrder)
+            orders = Order.objects.filter(
+                owner=user, isDelivered=isDelivered, isPaid=isPaid).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         orders = pagination(page, paginator)
         serializer = OrderSerializer(orders, many=True)
@@ -123,8 +122,7 @@ def getOrderList(request):
         print("주문에서 문제")
         if receiver:
             orders = Order.objects.filter(
-                owner=user, customer__name__icontains=receiver, created__range=[
-                    start, end]).order_by(givenOrder)
+                owner=user, customer__name__icontains=receiver).order_by(givenOrder)
         paginator = Paginator(orders, 10)
         count = Order.objects.count()
         orders = pagination(page, paginator)
